@@ -22,10 +22,13 @@
 @author: carlesmarti <carlesmarti@scolab.es>
 '''
 
+from collections import defaultdict
 from operator import concat
+import pprint
 from urllib import response
 from django.shortcuts import HttpResponse, render, redirect
 from django.contrib.auth.decorators import login_required
+import requests
 from gvsigol_auth.utils import superuser_required, staff_required
 from gvsigol_auth import auth_backend
 from gvsigol_auth.django_auth import get_user_details
@@ -523,7 +526,7 @@ def _etl_workspace_update(instance, request, name, description, workspace, param
     if instance.id is not None:
         delete_periodic_workspace(instance)
 
-    if periodic_task == 'true':
+    if periodic_task:
         save_periodic_workspace(request, instance)
 
     edit_roles = json.loads(request.POST.get('editRoles', '[]'))
@@ -946,6 +949,19 @@ def etl_proced_indenova(request):
             response = json.dumps(listProcedures)
 
             return HttpResponse(response, content_type="application/json")
+        
+@login_required()
+@staff_required
+def etl_proced_sentilo(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST)
+        if form.is_valid():
+            jsParams = json.loads(request.POST['jsonParamsProced'])
+
+            listProcedures = etl_schema.get_proced_sentilo(jsParams['parameters'][0])
+            response = json.dumps(listProcedures)
+
+            return HttpResponse(response, content_type="application/json")
 
 @login_required()
 @staff_required
@@ -959,6 +975,31 @@ def etl_schema_indenova(request):
 
             response = json.dumps(listSchema)
 
+            return HttpResponse(response, content_type="application/json")
+        
+
+@login_required()
+@staff_required
+def etl_schema_sentilo(request):
+    from .etl_tasks import format_sentilo_data
+
+    pprint.pprint(request)
+    if request.method == 'POST':
+        jsParams = json.loads(request.POST['jsonparamsSentilo'])
+        dicc = jsParams['parameters'][0]
+        api  = database_connections.objects.get(name = dicc['api'])
+        params_str = api.connection_params
+        params = json.loads(params_str)
+        pprint.pprint(params)
+        urlEntities = params["domain"] + "/entities"
+        headers = {'Authorization': 'Bearer ' + params['identity-key']}
+        entitiesRequest = requests.get(urlEntities, headers=headers)
+        entities = entitiesRequest.json()
+
+        _, keys = format_sentilo_data(entities)
+        form = UploadFileForm(request.POST)
+        if form.is_valid():
+            response = json.dumps(keys)
             return HttpResponse(response, content_type="application/json")
 
 
