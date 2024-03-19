@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: postgis
+   namespace: default
+spec:
+   replicas: 1
+   selector:
+      matchLabels:
+         bb: postgis
+   template:
+      metadata:
+         labels:
+            bb: postgis
+      spec:
+          containers:
+            - name: postgis
+              image: postgis/postgis
+              env:
+              - name: POSTGRES_PASSWORD
+                value: "svgis"
+              - name: POSTGRES_USER
+                value: "svgis"
+              - name: PGDATA
+                value: "/pgdata/data"
+              - name: POSTGRES_DB
+                value: "gvsigonline"
+              volumeMounts:
+               - mountPath: "/pgdata/"
+                 name: csi-pvc     
+          volumes:
+            - name: csi-pvc     
+              persistentVolumeClaim:
+               claimName: csi-pvc     
+
+

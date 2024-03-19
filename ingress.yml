@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/cors-allow-headers: Content-Type, authorization, x-requested-with
+    nginx.ingress.kubernetes.io/cors-allow-methods: PUT, GET, POST, OPTIONS
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://gvsigonline.lynsoluciones.es,https://gvsigonlinetest.lynsoluciones.es,https://geoserver.lynsoluciones.es"
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+  - hosts:
+    - gvsigonlinetest.lynsoluciones.es
+    - gvsigonline.lynsoluciones.es
+    - geoserver.lynsoluciones.es
+    secretName: gvsig-tls
+  rules:
+  - host: "gvsigonline.lynsoluciones.es"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: gvsigonlineextra
+            port:
+              number: 8001
+  - host: "geoserver.lynsoluciones.es"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: geo
+            port:
+              number: 8080
+  - host: "gvsigonlinetest.lynsoluciones.es"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: gvsigonline-ubuntu
+            port:
+              number: 8000
