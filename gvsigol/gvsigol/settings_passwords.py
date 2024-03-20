@@ -1,0 +1,7 @@
+BING_KEY_DEVEL=''
+DB_USER_DEVEL='gvsig'
+DB_PW_DEVEL='gvsig'
+LDAP_USER_DEVEL='cn=yourbinduser,dc=yoursubdomain,dc=yourdomain,dc=com'
+LDAP_PW_DEVEL='yourldappass'
+GEOSERVER_USER_DEVEL='admin'
+GEOSERVER_PW_DEVEL='yourgeoserverpass'

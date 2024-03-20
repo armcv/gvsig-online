@@ -159,7 +159,7 @@ RawFilter.prototype.registerEvents = function() {
 		var workspace = $('option:selected', $(this)).data('workspace');
 		var fields_trans = self.describeLayerConfig(layer, workspace);
 
-		var fields = self.getFields(layer, workspace);
+		var fields = self.getFields(layer, workspace).filter(f => f.name != "wkb_geometry");
 
 		var language = $("#select-language").val();
 		

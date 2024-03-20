@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: gvsigonline
+   namespace: default
+spec:
+   replicas: 1
+   selector:
+      matchLabels:
+         bb: gvsigonline
+   template:
+      metadata:
+         labels:
+            bb: gvsigonline
+      spec:
+          containers:
+            - name: gvsigonline
+              image: registry.digitalocean.com/lyn/gvsigonline
+          imagePullSecrets:
+              - name: lyn

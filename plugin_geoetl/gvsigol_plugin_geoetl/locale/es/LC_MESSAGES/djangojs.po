@@ -983,10 +983,7 @@ msgstr "Atributo de latitud"
 
 #: static/js/TableShape.js:11122 static/js/TableShape.js:11158
 msgid "Text to Point"
-msgstr "Texto a punto"
-
-msgid "Point to text"
-msgstr "Punto a texto"
+msgstr "Texto a Punto"
 
 #: static/js/TableShape.js:11171 static/js/TableShape.js:11445
 msgid "Insert EPSG:"

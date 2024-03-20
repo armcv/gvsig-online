@@ -22,7 +22,7 @@
 '''
 
 import ast
-from datetime import datetime
+from datetime import datetime, date
 import hashlib
 from http.client import HTTPResponse
 import json
@@ -3028,6 +3028,70 @@ def is_grouped_symbology_request(request, url, aux_response, styles, future_sess
             return aux_response
     return aux_response
 
+def parse_datetime(s):
+    try:
+        return datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        try:
+            return datetime.strptime(s, "%Y-%m-%dT%H:%M:%S.%fZ")
+        except Exception as e:
+            return None
+
+
+def map_features_to_mean_value(data):
+    if len(data) <= 1:
+        return data
+    numeric_keys = set()
+    average_values = {}
+    average_string_values = {}
+    dates_array = {}
+    for feature in data:
+
+        for key in feature["properties"].keys():
+            
+            if  isinstance(feature["properties"][key], (int, float)) and key not in ["ogc_fid","feat_version_gvol"]:
+                numeric_keys.add(key)
+            if isinstance(feature["properties"][key], str) and parse_datetime(feature["properties"][key]) is not None:
+
+                #parse date and add to array 
+                if key not in dates_array:
+                    dates_array[key] = []
+                dates_array[key].append(parse_datetime(feature["properties"][key]))
+            if isinstance(feature["properties"][key], date):
+                #parse date and add to array 
+                if key not in dates_array:
+                    dates_array[key] = []
+                dates_array[key].append(parse_datetime(feature["properties"][key]))
+
+    date_object = {}
+    for key in dates_array.keys():
+        date_object[key] = max(dates_array[key])
+
+    for key in numeric_keys:
+        filtered_features = list(filter(lambda feature: isinstance(feature["properties"][key], (int, float)), data))
+        average_value = sum([
+                                    feature["properties"][key] 
+                                        for feature in filtered_features 
+                                    ])/len(filtered_features)
+        average_values[key] = average_value
+        bae_property_name = key.split("_value")[0]
+        uom_key = bae_property_name + "_uom"
+        try:
+            uom = feature["properties"][uom_key]
+            average_string_values[bae_property_name + "_string"] = str(average_value) + " " + uom
+        except: 
+            print(f"UOM not found for {key}")
+
+    value_to_return = data[0]
+    for key in value_to_return:
+        if key in average_values:
+            value_to_return[key] = average_values[key]
+        if key in average_string_values:
+            value_to_return[key] = average_string_values[key]
+        if key in date_object:
+            value_to_return[key] = date_object[key]
+    return [value_to_return]
+
 @csrf_exempt
 def get_feature_info(request):
     if request.method == 'POST':
@@ -3219,8 +3283,9 @@ def get_feature_info(request):
             if features:
                 full_features = full_features + features
 
+
             response = {
-                'features': full_features
+                'features': map_features_to_mean_value(full_features)
             }
 
         return HttpResponse(json.dumps(response, indent=4), content_type='application/json')
