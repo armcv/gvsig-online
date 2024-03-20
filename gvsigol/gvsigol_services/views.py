@@ -29,6 +29,7 @@ import json
 import logging
 from math import floor
 import os
+import pprint
 import random
 import re
 import shutil
@@ -37,7 +38,7 @@ import unicodedata
 import urllib.request, urllib.parse, urllib.error
 import zipfile
 import xmltodict
-
+from urllib.parse import urlparse, parse_qs
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -3037,6 +3038,27 @@ def parse_datetime(s):
         except Exception as e:
             return None
 
+def map_features_to_last_value(data):
+    # Cargar el dato JSON
+    #dato = json.loads(data)
+
+    # Obtener la fecha y hora actual
+    fecha_actual = datetime.now()
+
+    # Función para obtener la diferencia de tiempo entre dos fechas
+    def diferencia_tiempo(fecha_str):
+        fecha = datetime.strptime(fecha_str, "%Y-%m-%dT%H:%M:%SZ")
+        return abs(fecha_actual - fecha)
+
+    # Ordenar los datos por la diferencia de tiempo entre "observation_time" y la fecha actual
+    data.sort(key=lambda x: diferencia_tiempo(x["properties"]["observation_time"]))
+
+    # Obtener el dato más cercano a la fecha actual
+    dato_mas_cercano = data[0]
+
+    # Devolver el dato más cercano en formato JSON
+    return [dato_mas_cercano]
+
 
 def map_features_to_mean_value(data):
     if len(data) <= 1:
@@ -3282,10 +3304,22 @@ def get_feature_info(request):
 
             if features:
                 full_features = full_features + features
+            
+            parsed_url = urlparse(url)
+            query_params = parse_qs(parsed_url.query)
+            show_value = query_params.get('SHOW_VALUES', [''])[0]
+            
+            if show_value == 'average':
+                response_features  = map_features_to_mean_value(full_features)
+            elif show_value == 'last':
+                response_features  = map_features_to_last_value(full_features)
+            else:
+                response_features = full_features
 
 
             response = {
-                'features': map_features_to_mean_value(full_features)
+                'features': response_features,
+                'show_value': show_value
             }
 
         return HttpResponse(json.dumps(response, indent=4), content_type='application/json')

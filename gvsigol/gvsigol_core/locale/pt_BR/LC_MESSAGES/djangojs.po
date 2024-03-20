@@ -833,6 +833,18 @@ msgstr "Individual"
 msgid "Range"
 msgstr "Faixa"
 
+#: gvsigol_core/static/js/lib/widgets/layerTree.js
+msgid "Show values"
+msgstr "Mostrar valores"
+
+#: gvsigol_core/static/js/lib/widgets/layerTree.js
+msgid "All"
+msgstr "Todos"
+
+#: gvsigol_core/static/js/lib/widgets/layerTree.js
+msgid "Average"
+msgstr "Média"
+
 #: gvsigol_core/static/js/lib/widgets/layerTree.js:687
 msgid "Temporary layers"
 msgstr "Camadas temporárias"
