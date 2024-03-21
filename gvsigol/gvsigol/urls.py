@@ -17,7 +17,6 @@ from django.urls import include, re_path, path
 from django.conf.urls import i18n
 from django.views.i18n import JavaScriptCatalog
 from django.contrib import admin
-from django.conf.urls.static import static
 
 from . import settings
 
@@ -34,7 +33,6 @@ urlpatterns = [
         path('admin/', admin.site.urls)
     ])),
 ]
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 for app in packages:
     if 'gvsigol_app_' in app:

@@ -830,18 +830,6 @@ msgstr "Single"
 msgid "Range"
 msgstr "Range"
 
-#: gvsigol_core/static/js/lib/widgets/layerTree.js
-msgid "Show values"
-msgstr "Show values"
-
-#: gvsigol_core/static/js/lib/widgets/layerTree.js
-msgid "All"
-msgstr "All"
-
-#: gvsigol_core/static/js/lib/widgets/layerTree.js
-msgid "Average"
-msgstr "Average"
-
 #: gvsigol_core/static/js/lib/widgets/layerTree.js:687
 msgid "Temporary layers"
 msgstr "Temporary layers"

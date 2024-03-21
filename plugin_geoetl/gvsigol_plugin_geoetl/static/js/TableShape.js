@@ -572,244 +572,6 @@ input_Indenova = draw2d.shape.layout.VerticalLayout.extend({
 
 });
 
-////////////////////////////////////////////////  INPUTS /////////////////////////////////////////////////////////
-//// INPUT SENTILO ////
-input_Sentilo = draw2d.shape.layout.VerticalLayout.extend({
-
-	NAME: "input_Sentilo",
-	
-    init : function(attr)
-    {
-    	this._super($.extend({bgColor:"#dbddde", color:"#d7d7d7", stroke:1, radius:3},attr));
-      
-        this.classLabel = new draw2d.shape.basic.Label({
-            text:"Sentilo",
-            stroke:1,
-            fontColor:"#ffffff",  
-            bgColor:"#83d0c9", 
-            radius: this.getRadius(), 
-            padding:10,
-            resizeable:true,
-            editor:new draw2d.ui.LabelInplaceEditor()
-        });
-       
-        var icon = new draw2d.shape.icon.Gear({ 
-            minWidth:13, 
-            minHeight:13, 
-            width:13, 
-            height:13, 
-            color:"#e2504c"
-        });
-
-        this.classLabel.add(icon, new draw2d.layout.locator.XYRelPortLocator(82, 8))
-
-        this.add(this.classLabel);
-
-        var ID = this.id
-
-        setColorIfIsOpened(jsonParams, this.cssClass, ID, icon)
-
-        $('#canvas-parent').append('<div id="dialog-input-sentilo-'+ID+'" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">'+
-            '<div class="modal-dialog" role="document">'+
-                '<div class="modal-content">'+
-                    '<div class="modal-header">'+
-                        '<button type="button" class="close" data-dismiss="modal" aria-label="Close">'+
-                            '<span aria-hidden="true">&times;</span>'+
-                        '</button>'+
-                        '<h4 class="modal-title">'+paramsTransTpl.replace('{}', gettext('Sentilo'))+'</h4>'+
-                    '</div>'+
-                    '<div class="modal-body">'+
-                        '<form>'+
-                            '<div>'+
-                                '<label form="db" class="col-form-label">'+gettext('API Connection:')+'</label>'+
-                                '<select id="api-'+ID+'" class="form-control"></select>'+
-                            '</div>'+
-                            '<div>'+
-                                '<label form="db" class="col-form-label">Tabla de almacenar datos</label>'+
-                                '<input type="text" id="data_table-'+ID+'" class="form-control" value="sentilo_data">'+
-                            '</div>'+
-                            '<div>'+
-                                '<label form="db" class="col-form-label"> Esquema Base de Datos </label>'+
-                                '<input type="text" id="db_schema-'+ID+'" class="form-control" value="public">'+
-                            '</div>'+
-                            '<br><br><br><br><br><br><br><br><br><br><br><br><br><br>'+ 
-                        '</form>'+
-                    '</div>'+
-                    '<div class="modal-footer">'+
-                        '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">'+gettext('Close')+'</button>'+
-                        '<button type="button" class="btn btn-default btn-sm" id="input-sentilo-accept-'+ID+'">'+gettext('Accept')+'</button>'+
-                    '</div>'+
-                '</div>'+
-            '</div>'+
-        '</div>')
-
-        var context = this
-
-
-        for(i=0;i<dbc.length;i++){
-
-            if(dbc[i].type == 'sentilo'){
-                $('#api-'+ID).append(
-                    '<option value="'+dbc[i].name+'">'+dbc[i].name+'</option>'
-                );
-            }
-        };
-
-    
-        icon.on("click", function(){
-            console.log("LLAMADO");
-            $('#dialog-input-sentilo-'+ID).modal('show')
-        });
-
-        $('#input-sentilo-accept-'+ID).click(function() {
-
-            var paramsSentilo = {"id": ID,
-            "parameters": [
-                {   
-                    "api": $('#api-'+ID).val(),
-                    "table_name": $('#data_table-'+ID).val(),
-                    "db_schema_name": $('#db_schema-'+ID).val(),
-                }
-            ]};
-
-            var formDataSentilo = new FormData();
-
-            formDataSentilo.append('jsonparamsSentilo', JSON.stringify(paramsSentilo))
-            $("#canvas-parent").css('cursor','wait');
-            $.ajax({
-                type: 'POST',
-                url: '/gvsigonline/etl/etl_schema_sentilo/',
-                data: formDataSentilo,
-                beforeSend:function(xhr){
-                    xhr.setRequestHeader('X-CSRFToken', Cookies.get('csrftoken'));
-                },
-                cache: false, 
-                contentType: false, 
-                processData: false,
-                success: function (data) {
-                    paramsSentilo['schema'] = data
-                    paramsSentilo['parameters'][0]['schema'] = data
-                    
-                    passSchemaToEdgeConnected(ID, listLabel, data, context.canvas)
-                    
-                    isAlreadyInCanvas(jsonParams, paramsSentilo, ID)
-
-                    icon.setColor('#01b0a0')
-                    
-                    $('#dialog-input-sentilo-'+ID).modal('hide')
-
-                    $("#canvas-parent").css('cursor','default');
-                }
-            })
-        });
-    },
-     
-    /**
-     * @method
-     * Add an entity to the db shape
-     * 
-     * @param {String} txt the label to show
-     * @param {Number} [optionalIndex] index where to insert the entity
-     */
-    addEntity: function(optionalIndex)
-    {
-	   	 var label =new draw2d.shape.basic.Label({
-	   	     text:gettext("Input"),
-	   	     stroke:0.2,
-	   	     radius:0,
-	   	     bgColor:"#ffffff",
-	   	     padding:{left:40, top:3, right:10, bottom:5},
-	   	     fontColor:"#009688",
-             resizeable:true
-	   	 });
-
-	     var output= label.createPort("output");
-	     
-         output.setName("output_"+label.id);
-         
-	     if($.isNumeric(optionalIndex)){
-             this.add(label, null, optionalIndex+1);
-	     }
-	     else{
-	         this.add(label);
-	     }
-         
-         listLabel.push([this.id, [], [output.name]])
-         
-         return label;
-    },
-        /**
-     * @method
-     * Remove the entity with the given index from the DB table shape.<br>
-     * This method removes the entity without care of existing connections. Use
-     * a draw2d.command.CommandDelete command if you want to delete the connections to this entity too
-     * 
-     * @param {Number} index the index of the entity to remove
-     */
-    removeEntity: function(index)
-    {
-        this.remove(this.children.get(index+1).figure);
-    },
-
-    /**
-     * @method
-     * Returns the entity figure with the given index
-     * 
-     * @param {Number} index the index of the entity to return
-     */
-    getEntity: function(index)
-    {
-        return this.children.get(index+1).figure;
-    },
-     
-     /**
-      * @method
-      * Set the name of the DB table. Visually it is the header of the shape
-      * 
-      * @param name
-      */
-     setName: function(name)
-     {
-         this.classLabel.setText(name);
-         
-         return this;
-     },
-     
-     /**
-      * @method 
-      * Return an objects with all important attributes for XML or JSON serialization
-      * 
-      * @returns {Object}
-      */
-     getPersistentAttributes : getPerAttr,
-     
-     /**
-      * @method 
-      * Read all attributes from the serialized properties and transfer them into the shape.
-      *
-      * @param {Object} memento
-      * @return
-      */
-     setPersistentAttributes : function(memento)
-     {
-         this._super(memento);
-         
-         this.setName(memento.name);
-
-         if(typeof memento.entities !== "undefined"){
-             $.each(memento.entities, $.proxy(function(i,e){
-                 var entity =this.addEntity(e.text);
-                 entity.id = e.id;
-                 
-                 entity.getInputPort(0).setName("input_"+e.id);
-                 entity.getOutputPort(0).setName("output_"+e.id);
-             },this));
-         }
-
-         return this;
-     }  
-
-});
 //// INPUT SEGEX ////
 input_Segex = draw2d.shape.layout.VerticalLayout.extend({
 
@@ -12275,6 +12037,20 @@ trans_TextToPoint = draw2d.shape.layout.VerticalLayout.extend({
                     '</div>'+
                     '<div class="modal-body">'+
                         '<form>'+
+
+                            '<div>'+
+                                '<label class="col-form-label">'+gettext('Mode')+':</label>'+
+                                '<div class="form-check">'+
+                                    '<input type="radio" id="txt-to-point-'+ID+'" name="txt-to-point-'+ID+'" class="form-check-input" value="txt-to-point" checked="checked">'+
+                                    '<label class="form-check-label">'+gettext('Text to Point')+'</label>'+
+                                '</div>'+
+
+                                '<div class="form-check">'+
+                                    '<input type="radio" id="point-to-txt-'+ID+'" name="txt-to-point-'+ID+'" class="form-check-input" value="point-to-txt">'+
+                                    '<label class="form-check-label">'+gettext('Point to text')+'</label>'+
+                                '</div>'+
+                            '</div>'+
+
                             '<div class="column33">'+
                                 '<label form="attr" class="col-form-label">'+gettext('Longitude attribute:')+' (X) </label>'+
                                 '<select class="form-control" id="lon-'+ID+'"> </select>'+
@@ -12300,6 +12076,25 @@ trans_TextToPoint = draw2d.shape.layout.VerticalLayout.extend({
         '</div>')
 
 
+        $('input:radio[name="txt-to-point-'+ID+'" ]').change(function(){
+
+            if ($(this).val() == 'txt-to-point'){
+                
+                $('#lon-'+ID).prop('disabled', false)
+                $('#lat-'+ID).prop('disabled', false)
+                $('#epsg-'+ID).prop('disabled', false)
+                
+                
+            }
+            else if ($(this).val() == 'point-to-txt'){
+            
+                $('#lon-'+ID).prop('disabled', true)
+                $('#lat-'+ID).prop('disabled', true)
+                $('#epsg-'+ID).prop('disabled', true)
+            }
+        });
+
+
         for(i=0;i<srs.length;i++){
 
             epsg = srs[i].code.split(":")[1]
@@ -12310,6 +12105,21 @@ trans_TextToPoint = draw2d.shape.layout.VerticalLayout.extend({
         }
 
         icon.on("click", function(){
+
+            if ($('input:radio[name="txt-to-point-'+ID+'" ]:checked').val() == 'txt-to-point'){
+                
+                $('#lon-'+ID).prop('disabled', false)
+                $('#lat-'+ID).prop('disabled', false)
+                $('#epsg-'+ID).prop('disabled', false)
+                
+            }
+            else if ($('input:radio[name="txt-to-point-'+ID+'" ]:checked').val() == 'point-to-txt'){
+            
+                $('#lon-'+ID).prop('disabled', true)
+                $('#lat-'+ID).prop('disabled', true)
+                $('#epsg-'+ID).prop('disabled', true)
+            }
+
 
             setTimeout(function(){
                 
@@ -12357,11 +12167,20 @@ trans_TextToPoint = draw2d.shape.layout.VerticalLayout.extend({
                 "parameters": [
                     {"epsg": $('#epsg-'+ID).val(),
                     "lon": $('#lon-'+ID).val(),
-                    "lat": $('#lat-'+ID).val()}
+                    "lat": $('#lat-'+ID).val(),
+                    "txt-to-point": $('input:radio[name="txt-to-point-'+ID+'"]:checked').val()}
                 ]
             };
-            
             schemaMod =[...schemaEdge]
+
+            console.log(paramsTextToPoint)
+            
+            if ($('input:radio[name="txt-to-point-'+ID+'" ]:checked').val() == 'point-to-txt'){
+                schemaMod.push('_xlon')
+                schemaMod.push('_ylat')
+
+            }
+            
             
             //updating schema-old and schema parameters in json
             paramsTextToPoint['schema-old'] = schemaEdge
@@ -15527,7 +15346,7 @@ output_Postgis = draw2d.shape.layout.VerticalLayout.extend({
                             '<div class="column25">'+
                                 '<label class="col-form-label">'+gettext('Operation:')+'</label>'+
                                 '<div class="form-check">'+
-                                    '<input type="radio" id="create" name="operation-'+ID+'" class="form-check-input" value="CREATE">'+
+                                    '<input type="radio" id="create" name="operation-'+ID+'" class="form-check-input" value="CREATE" checked="checked">'+
                                     '<label for="create" class="form-check-label">'+gettext('CREATE')+'</label>'+
                                 '</div>'+
                                 '<div class="form-check">'+
@@ -15544,10 +15363,6 @@ output_Postgis = draw2d.shape.layout.VerticalLayout.extend({
                                 '<div class="form-check">'+
                                     '<input type="radio" id="update-'+ID+'" name="operation-'+ID+'" class="form-check-input" value="UPDATE">'+
                                     '<label for="update" class="form-check-label">'+gettext('UPDATE')+'</label>'+
-                                '</div>'+
-                                '<div class="form-check">'+
-                                    '<input type="radio" id="update-upsert'+ID+'" name="operation-'+ID+'" class="form-check-input" value="UPDATE_UPSERT"  checked="checked">'+
-                                    '<label for="update-upsert" class="form-check-label">'+gettext('UPDATE')+' UPSERT</label>'+
                                 '</div>'+
                                 '<div class="form-check">'+
                                     '<input type="radio" id="delete-'+ID+'" name="operation-'+ID+'" class="form-check-input" value="DELETE">'+

@@ -225,7 +225,7 @@ var EditionBar = function(layerTree, map, featureType, selectedLayer, buildDrawC
 						// WARNING: format.GML will automatically invert the coordinates order when required
 						// if the axisOrientation is defined in the CRS definitions in OL
 						this_.formatGML = new ol.format.GML({
-							featureNS: this_.selectedLayer.namespace.replace("https://geoserver.lynsoluciones.es/geoserver/", ""),
+							featureNS: this_.selectedLayer.namespace,
 							featureType: this_.selectedLayer.layer_name,
 							srsName: this_.mapSRS
 						});

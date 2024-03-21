@@ -285,28 +285,6 @@ def get_proced_indenova(dicc):
     
     return listProd
 
-def get_proced_sentilo(dicc):
-
-    api  = database_connections.objects.get(name = dicc['api'])
-
-    params_str = api.connection_params
-    params = json.loads(params_str)
-
-    domain = params['domain']
-    api_key = params['api-key']
-
-    url_list = domain + "//api/rest/process/v1/process/list?idsection=27"
-
-    headers_list = {'esigna-auth-api-key': api_key}
-
-    r_list = requests.get(url_list, headers = headers_list)
-    
-    listProd = []
-    for i in json.loads(r_list.content.decode('utf8')):
-        listProd.append([i['id'], i['name']])
-    
-    return listProd
-
 def get_schema_postgres(dicc):
     
     db  = database_connections.objects.get(name = dicc['db'])

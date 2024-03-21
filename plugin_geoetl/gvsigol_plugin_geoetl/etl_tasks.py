@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from copy import deepcopy
-import pprint
 from gvsigol import settings
 from .settings import URL_GEOCODER, GEOETL_DB
 
@@ -782,7 +781,7 @@ def isInSamedb(params):
 
 
 def output_Postgis(dicc):
-    pprint.pprint(dicc)
+
     table_name_source = dicc['data'][0]
 
     db  = database_connections.objects.get(name = dicc['db-option'])
@@ -957,7 +956,7 @@ def output_Postgis(dicc):
 
                 cur_2.close()
 
-                sqlInsert_ = 'INSERT INTO {sch_target}.{tbl_target} {attrs_target} SELECT {attrs_source} FROM {sch_source}.{tbl_source} ON CONFLICT DO NOTHING'
+                sqlInsert_ = 'INSERT INTO {sch_target}.{tbl_target} {attrs_target} SELECT {attrs_source} FROM {sch_source}.{tbl_source} '
                 
                 sqlInsert = sql.SQL(sqlInsert_).format(
                         sch_target = sql.Identifier(esq),
@@ -1076,9 +1075,8 @@ def output_Postgis(dicc):
             ))
 
             con_source.commit()
-            pprint.pprint(cur)
+
             for row in cur:
-                pprint.pprint(row)
                 attrs_update ='UPDATE {sch_target}.{tbl_target} SET '
                 attrList =[]
                 valueList =[]
@@ -1126,145 +1124,7 @@ def output_Postgis(dicc):
                 pass
             cur_2.close()
                     
-        elif dicc['operation'] == 'UPDATE_UPSERT':
-           
-            sqlDatetype = 'SELECT column_name from information_schema.columns '
-            sqlDatetype += "where table_schema = %s and table_name = %s "
 
-            cur.execute(sql.SQL(sqlDatetype).format(),[GEOETL_DB["schema"], table_name_source])
-            con_source.commit()
-
-            attr_source = []
-
-            geometry = False
-
-            for row in cur:
-                attr_source.append(row[0])
-                if 'wkb_geometry' == row[0]:
-                    geometry = True
-
-            if inSame:
-
-                cur_2 = con_source.cursor()
-
-            else:
-
-                con_target = psycopg2.connect(user = params["user"], password = params["password"], host = params["host"], port = params["port"], database = params["database"])
-                cur_2 = con_target.cursor()
-
-            if geometry:
-
-                sqlDatetype = 'SELECT column_name, data_type from information_schema.columns '
-                sqlDatetype += "where table_schema = %s and table_name = %s "
-
-                if inSame:
-
-                    cur.execute(sql.SQL(sqlDatetype).format(),[esq, tab])
-                    con_source.commit()
-
-                    for row in cur:
-                        if  row[1] == 'USER-DEFINED' or row[1] == 'geometry':
-                            if 'wkb_geometry' == row[0]:
-                                attr_target = 'wkb_geometry'
-                            else:
-                                attr_target = row[0]
-                            break
-                else:
-
-                    cur_2.execute(sql.SQL(sqlDatetype).format(),[esq, tab])
-                    con_target.commit()
-
-                    for row in cur_2:
-                        if  row[1] == 'USER-DEFINED' or row[1] == 'geometry':
-                            if 'wkb_geometry' == row[0]:
-                                attr_target = 'wkb_geometry'
-                            else:
-                                attr_target = row[0]
-                            break
-
-
-         
-
-            
-            sqlDatetype = 'SELECT column_name from information_schema.columns '
-            sqlDatetype += "where table_schema = %s and table_name = %s "
-
-            cur.execute(sql.SQL(sqlDatetype).format(),[GEOETL_DB["schema"], table_name_source])
-            con_source.commit()
-
-            attr_source = '('
-
-            attrSourceList = []
-            attrTargetList = []
-
-            pprint.pprint(cur)
-            for row in cur:
-                attr_source = attr_source + ' {}, '
-                attrSourceList.append(row[0])
-                
-                if 'wkb_geometry' == row[0]:
-
-                    sqlDatetype = 'SELECT column_name, data_type from information_schema.columns '
-                    sqlDatetype += "where table_schema = %s and table_name = %s "
-
-                    cur_2.execute(sql.SQL(sqlDatetype).format(),[esq, tab])
-                    #con_source.commit()
-
-                    for r in cur_2:
-                        if  r[1] == 'USER-DEFINED' or r[1] == 'geometry':
-                            if 'wkb_geometry' == r[0]:
-                                attrTargetList.append(row[0])
-                            else:
-                                attrTargetList.append(r[0])
-                            break
-
-                else:
-                    attrTargetList.append(row[0])
-            
-            attr_source = attr_source[:-2] + ')'
-
-            cur_2.close()
-            uniqueQueyQuery = "ALTER TABLE {sch_target}.{tbl_target} ADD CONSTRAINT constraint_name UNIQUE ("+dicc['match']+");"
-            uniqueQueyQuery = sql.SQL(uniqueQueyQuery).format(
-                 sch_target = sql.Identifier(esq),
-                tbl_target = sql.Identifier(tab)
-            )
-            cur_3 = con_source.cursor()
-            try:
-                cur_3.execute(uniqueQueyQuery)
-            except Exception as e:
-                print("exception", e)
-            con_source.commit()
-            cur_3.close()
-            sqlInsert_ = 'INSERT INTO {sch_target}.{tbl_target} {attrs_target} SELECT {attrs_source} FROM {sch_source}.{tbl_source} ON CONFLICT('+ dicc['match'] + ') DO NOTHING'
-            
-            sqlInsert = sql.SQL(sqlInsert_).format(
-                    sch_target = sql.Identifier(esq),
-                    tbl_target = sql.Identifier(tab),
-                    attrs_source = sql.SQL(attr_source[1:-1]).format(
-                        *[sql.Identifier(field) for field in attrSourceList],
-                    ),
-                    attrs_target = sql.SQL(attr_source).format(
-                        *[sql.Identifier(field) for field in attrTargetList],
-                    ),
-                    sch_source = sql.Identifier(GEOETL_DB["schema"]),
-                    tbl_source = sql.Identifier(table_name_source)
-                    )
-
-            cur.execute(sqlInsert)
-            con_source.commit()
-
-                
-
-            con_source.close()
-            cur.close()
-
-            try:
-                con_target.close()
-            except:
-                pass
-            cur_2.close()
-                    
         elif dicc['operation'] == 'DELETE':
 
             sqlDatetype = 'SELECT column_name from information_schema.columns '
@@ -1846,6 +1706,14 @@ def trans_TextToPoint(dicc):
     lon = dicc['lon']
     epsg = dicc['epsg']
 
+    print(dicc)
+
+    try:
+        text_to_point = dicc['txt-to-point']
+    except:
+        text_to_point = 'txt-to-point'
+
+
     table_name_source = dicc['data'][0]
     table_name_target = dicc['id']
 
@@ -1858,25 +1726,36 @@ def trans_TextToPoint(dicc):
     cur.execute(sqlDrop)
     conn.commit()
 
-    sqlDup = sql.SQL('CREATE TABLE {schema}.{tbl_target} AS (SELECT *, ST_SetSRID(ST_MakePoint({lon}::float, {lat}::float), {epsg}) AS wkb_geometry FROM {schema}.{tbl_source} );').format(
-        schema = sql.Identifier(GEOETL_DB["schema"]),
-        tbl_target = sql.Identifier(table_name_target),
-        tbl_source = sql.Identifier(table_name_source),
-        lon = sql.Identifier(lon),
-        lat = sql.Identifier(lat),
-        epsg = sql.SQL(epsg)
-    )
-    cur.execute(sqlDup)
-    conn.commit()
+    if text_to_point == 'txt-to-point':
 
-    sqlAlter = sql.SQL('ALTER TABLE {schema}.{table_name} ALTER COLUMN wkb_geometry TYPE Geometry(Point, {srid})').format(
-        schema = sql.Identifier(GEOETL_DB["schema"]),
-        table_name = sql.Identifier(table_name_target),
-        srid = sql.SQL(str(epsg))
-    )
+        sqlDup = sql.SQL('CREATE TABLE {schema}.{tbl_target} AS (SELECT *, ST_SetSRID(ST_MakePoint({lon}::float, {lat}::float), {epsg}) AS wkb_geometry FROM {schema}.{tbl_source} );').format(
+            schema = sql.Identifier(GEOETL_DB["schema"]),
+            tbl_target = sql.Identifier(table_name_target),
+            tbl_source = sql.Identifier(table_name_source),
+            lon = sql.Identifier(lon),
+            lat = sql.Identifier(lat),
+            epsg = sql.SQL(epsg)
+        )
+        cur.execute(sqlDup)
+        conn.commit()
 
-    cur.execute(sqlAlter)
-    conn.commit()
+        sqlAlter = sql.SQL('ALTER TABLE {schema}.{table_name} ALTER COLUMN wkb_geometry TYPE Geometry(Point, {srid})').format(
+            schema = sql.Identifier(GEOETL_DB["schema"]),
+            table_name = sql.Identifier(table_name_target),
+            srid = sql.SQL(str(epsg))
+        )
+
+        cur.execute(sqlAlter)
+        conn.commit()
+    
+    elif text_to_point == 'point-to-txt':
+        sqlDup = sql.SQL('CREATE TABLE {schema}.{tbl_target} AS (SELECT *, ST_X(ST_CENTROID(wkb_geometry)) as _xlon, ST_Y(ST_CENTROID(wkb_geometry)) as _ylat FROM {schema}.{tbl_source} );').format(
+            schema = sql.Identifier(GEOETL_DB["schema"]),
+            tbl_target = sql.Identifier(table_name_target),
+            tbl_source = sql.Identifier(table_name_source)
+        )
+        cur.execute(sqlDup)
+        conn.commit()
     
     return[table_name_target]
 
@@ -2309,7 +2188,7 @@ def input_Indenova(dicc):
 
 
 def input_Postgis(dicc):
-    pprint.pprint(dicc)
+
     table_name_target= dicc['id'].replace('-','_')
 
     db  = database_connections.objects.get(name = dicc['db'])
@@ -4082,169 +3961,6 @@ def input_Segex(dicc):
     db.dispose()
 
     return [table_name]
-
-def format_sentilo_data(entities):
-    filteredEntities = filter(lambda entity: "council_data" in entity and "value" in entity["council_data"] and entity["council_data"]["value"]["municipality"] == "cullera", entities)
-    finalList = []
-    list_tmp = {}
-    # print(entities[1])
-    for entity in filteredEntities:
-        componentSubStringIndex =  entity['id'].find("CUA")
-        componentSensor = entity['id'][componentSubStringIndex:-3]
-        metadata = entity["description"]["value"]
-        observation_time = entity[metadata]["metadata"]["samplingTime"]["value"]
-        tipo = entity['type']
-        uom = ""
-        try: 
-            uom = entity["_uom"]["value"]
-            entity["uom"] = uom
-        except Exception as e:
-            print("Error getting uom")
-        observation_value = 0
-        try: 
-            observation_value = float(entity[metadata]["value"])
-        except Exception as e:
-            print("Error getting observation_value", e)
-            observation_value = 0
-        observation_string = str(entity[metadata]["value"])
-        try:
-            observation_string = observation_string + " " + uom
-        except Exception as e:
-            print("Error getting observation_string", e)
-        lat = entity["location"]["value"]["lat"]
-        lng = entity["location"]["value"]["lng"]
-        list_tmp = {
-            "component": componentSensor,
-            "observation_time": observation_time,
-            "lat": lat,
-            "lng": lng,
-            "tipo": tipo,
-            "metadata": metadata.lower(),
-            metadata.lower() + "_string": observation_string,
-            metadata.lower() + "_value": observation_value,
-            metadata.lower() + "_uom": uom
-        }
-        finalList.append(list_tmp)
-
-
-    grouped_data = defaultdict(lambda: {'metadata': set()})
-    for item in finalList:
-        key = (item['component'], item['observation_time'], item['lat'], item['lng'])
-
-        if key not in grouped_data:
-            grouped_data[key]['component'] = item['component']
-            grouped_data[key]['observation_time'] = item['observation_time']
-            grouped_data[key]['lat'] = item['lat']
-            grouped_data[key]['lng'] = item['lng']
-        grouped_data[key]['tipo'] = set()
-        grouped_data[key]['metadata'] = set()
-        
-    for item in finalList:
-        key = (item['component'], item['observation_time'], item['lat'], item['lng'])
-        grouped_data[key]['tipo'].add(item['tipo'])
-        grouped_data[key]['metadata'].add(item['metadata'])
-        metas = filter(lambda key: key.startswith(item['metadata']), item.keys())
-        for meta in metas:
-            grouped_data[key][meta] = item[meta]
-    
-
-    output = []
-
-    for key, value in grouped_data.items():
-        value['tipo'] = ','.join(value['tipo'])   
-        value['metadata'] = ','.join(value['metadata'])
-
-        output.append(value)
-
-    keys = set()
-    for item in output:
-        keys.update(item.keys())
-    return output, list(keys)
-
-def input_Sentilo(dicc):
-    pprint.pprint(dicc)
-    api  = database_connections.objects.get(name = dicc['api'])
-    pprint.pprint(api)
-    params_str = api.connection_params
-    params = json.loads(params_str)
-    json_formatted_str = json.dumps(params, indent=2)
-
-    print(json_formatted_str)
-    conn_string = 'postgresql://'+GEOETL_DB['user']+':'+GEOETL_DB['password']+'@'+GEOETL_DB['host']+':'+GEOETL_DB['port']+'/'+GEOETL_DB['database']
-    db = create_engine(conn_string)
-    conn = db.connect()
-
-    table_name = dicc['id']
-    urlEntities = params["domain"] + "/entities"
-    headers = {'Authorization': 'Bearer ' + params['identity-key']}
-    entitiesRequest = requests.get(urlEntities, headers=headers)
-    entities = entitiesRequest.json()
-    output, keys = format_sentilo_data(entities)
-    # aqui hay que trabajar con la base de datos para saber si tenemos que crear o no columnas nuevas, 
-    # incluso tambien tenemos que verificar si tenemos que crear la tabla
-    from sqlalchemy import Column, DateTime, String, Float
-    from sqlalchemy.ext.declarative import declarative_base
-    from sqlalchemy import MetaData, Table
-
-    db_schema_name = dicc['db_schema_name']
-    db_table_name = dicc['table_name']
-    db_columns = dicc['schema']
-
-    Base = declarative_base()
-
-    # Definir el modelo de la tabla
-    class DatosAmbientales(Base):
-        __tablename__ = db_table_name
-        component = Column(String, primary_key=True)
-        lat = Column(Float, primary_key=True)
-        lng = Column(Float, primary_key=True)
-        observation_time = Column(DateTime, primary_key=True)
-        tipo = Column(String)
-
-    # Crear la tabla si no existe
-    Base.metadata.create_all(db)
-
-    # table_modification_conection = db.connect()
-    # # cuando terminemos con las verificaciones modificaciones y creaciones en la base de datos 
-    # CREATE TABLE IF NOT EXISTS datos_ambientales (
-    #     id SERIAL PRIMARY KEY,
-    #     O3 DOUBLE PRECISION,
-    #     NO2 DOUBLE PRECISION,
-    #     PM2_5 DOUBLE PRECISION
-    # );
-
-
-    metadata = MetaData(bind=db)
-
-    # Cargar la definición de la tabla vía reflexión
-    tabla = Table(db_table_name, metadata, autoload_with=db)
-
-    # Obtener e imprimir los nombres de las columnas
-    nombres_de_columnas = [column.name for column in tabla.columns]
-    for col in db_columns: 
-        if col.lower() not in nombres_de_columnas:
-            column = None
-            print(col)
-            if col.endswith("_value"):
-                column = Column(col, Float)
-            else:
-                column = Column(col, String)
-            tabla.append_column(column)
-            with db.connect() as alter_conn:
-                alter_conn.execute(f'ALTER TABLE {tabla.name} ADD COLUMN {col} {column.type.compile(db.dialect)}')
-
-    df = pd.json_normalize(output)
-
-    df_obj = df.select_dtypes(['object'])
-    df[df_obj.columns] = df_obj.apply(lambda x: x.str.lstrip(' '))
-    df.to_sql(table_name, con=conn, schema= GEOETL_DB['schema'], if_exists='replace', index=False)
-    
-    pprint.pprint("more logs")
-    conn.close()
-    db.dispose()
-    
-    return [table_name]
-
 
 
 def input_Json(dicc):
