@@ -684,7 +684,7 @@ layerTree.prototype.createTemporaryTab = function() {
 
 	//Codigo nuestro----------------------------------------
 	temporary_tree += '<div style="margin-left:10px;margin-top:10px">';	
-	temporary_tree += 	'<span class="text" style="vertical-align: super;margin-left:10px">'+gettext('Show values:')+'</span>';
+	temporary_tree += 	'<span class="text" style="vertical-align: super;margin-left:10px">'+gettext('Show values')+':</span>';
 	temporary_tree += '</div>';
 
 	temporary_tree += '<div style="margin-left:10px;">';
