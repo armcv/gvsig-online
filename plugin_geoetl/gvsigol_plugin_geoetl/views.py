@@ -21,7 +21,7 @@
 '''
 @author: carlesmarti <carlesmarti@scolab.es>
 '''
-
+from .sentilo_geoetl import etl_proced_sentilo_etl,etl_schema_sentilo_etl
 from collections import defaultdict
 from operator import concat
 import pprint
@@ -953,15 +953,7 @@ def etl_proced_indenova(request):
 @login_required()
 @staff_required
 def etl_proced_sentilo(request):
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST)
-        if form.is_valid():
-            jsParams = json.loads(request.POST['jsonParamsProced'])
-
-            listProcedures = etl_schema.get_proced_sentilo(jsParams['parameters'][0])
-            response = json.dumps(listProcedures)
-
-            return HttpResponse(response, content_type="application/json")
+    return etl_proced_sentilo_etl(request)
 
 @login_required()
 @staff_required
@@ -981,26 +973,7 @@ def etl_schema_indenova(request):
 @login_required()
 @staff_required
 def etl_schema_sentilo(request):
-    from .etl_tasks import format_sentilo_data
-
-    pprint.pprint(request)
-    if request.method == 'POST':
-        jsParams = json.loads(request.POST['jsonparamsSentilo'])
-        dicc = jsParams['parameters'][0]
-        api  = database_connections.objects.get(name = dicc['api'])
-        params_str = api.connection_params
-        params = json.loads(params_str)
-        pprint.pprint(params)
-        urlEntities = params["domain"] + "/entities"
-        headers = {'Authorization': 'Bearer ' + params['identity-key']}
-        entitiesRequest = requests.get(urlEntities, headers=headers)
-        entities = entitiesRequest.json()
-
-        _, keys = format_sentilo_data(entities)
-        form = UploadFileForm(request.POST)
-        if form.is_valid():
-            response = json.dumps(keys)
-            return HttpResponse(response, content_type="application/json")
+    return etl_schema_sentilo_etl(request)
 
 
 @login_required()

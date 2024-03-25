@@ -574,6 +574,7 @@ input_Indenova = draw2d.shape.layout.VerticalLayout.extend({
 
 ////////////////////////////////////////////////  INPUTS /////////////////////////////////////////////////////////
 //// INPUT SENTILO ////
+
 input_Sentilo = draw2d.shape.layout.VerticalLayout.extend({
 
 	NAME: "input_Sentilo",
@@ -602,9 +603,7 @@ input_Sentilo = draw2d.shape.layout.VerticalLayout.extend({
         });
 
         this.classLabel.add(icon, new draw2d.layout.locator.XYRelPortLocator(82, 8))
-
         this.add(this.classLabel);
-
         var ID = this.id
 
         setColorIfIsOpened(jsonParams, this.cssClass, ID, icon)
@@ -645,7 +644,6 @@ input_Sentilo = draw2d.shape.layout.VerticalLayout.extend({
 
         var context = this
 
-
         for(i=0;i<dbc.length;i++){
 
             if(dbc[i].type == 'sentilo'){
@@ -654,8 +652,7 @@ input_Sentilo = draw2d.shape.layout.VerticalLayout.extend({
                 );
             }
         };
-
-    
+  
         icon.on("click", function(){
             console.log("LLAMADO");
             $('#dialog-input-sentilo-'+ID).modal('show')
@@ -810,6 +807,8 @@ input_Sentilo = draw2d.shape.layout.VerticalLayout.extend({
      }  
 
 });
+
+// --------------------------------------------------
 //// INPUT SEGEX ////
 input_Segex = draw2d.shape.layout.VerticalLayout.extend({
 
@@ -15531,7 +15530,7 @@ output_Postgis = draw2d.shape.layout.VerticalLayout.extend({
                                     '<label for="create" class="form-check-label">'+gettext('CREATE')+'</label>'+
                                 '</div>'+
                                 '<div class="form-check">'+
-                                    '<input type="radio" id="append-'+ID+'" name="operation-'+ID+'" class="form-check-input" value="APPEND">'+
+                                    '<input type="radio" id="append-'+ID+'" name="operation-'+ID+'" class="form-check-input" value="APPEND" checked="checked">'+
                                     '<label for="append" class="form-check-label">'+gettext('APPEND')+'</label>'+
                                 '</div>'+
                                 '<div class="form-check">'+
@@ -15544,10 +15543,6 @@ output_Postgis = draw2d.shape.layout.VerticalLayout.extend({
                                 '<div class="form-check">'+
                                     '<input type="radio" id="update-'+ID+'" name="operation-'+ID+'" class="form-check-input" value="UPDATE">'+
                                     '<label for="update" class="form-check-label">'+gettext('UPDATE')+'</label>'+
-                                '</div>'+
-                                '<div class="form-check">'+
-                                    '<input type="radio" id="update-upsert'+ID+'" name="operation-'+ID+'" class="form-check-input" value="UPDATE_UPSERT"  checked="checked">'+
-                                    '<label for="update-upsert" class="form-check-label">'+gettext('UPDATE')+' UPSERT</label>'+
                                 '</div>'+
                                 '<div class="form-check">'+
                                     '<input type="radio" id="delete-'+ID+'" name="operation-'+ID+'" class="form-check-input" value="DELETE">'+
