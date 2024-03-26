@@ -21,7 +21,7 @@
 '''
 @author: carlesmarti <carlesmarti@scolab.es>
 '''
-from .sentilo_geoetl import etl_proced_sentilo_etl,etl_schema_sentilo_etl
+from .sentilo_geoetl import etl_schema_sentilo_etl
 from collections import defaultdict
 from operator import concat
 import pprint
@@ -949,11 +949,6 @@ def etl_proced_indenova(request):
             response = json.dumps(listProcedures)
 
             return HttpResponse(response, content_type="application/json")
-        
-@login_required()
-@staff_required
-def etl_proced_sentilo(request):
-    return etl_proced_sentilo_etl(request)
 
 @login_required()
 @staff_required

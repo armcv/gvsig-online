@@ -13,7 +13,23 @@ headers = {
 
 
 entitiesRequest = requests.get(urlEntities, headers=headers)
-entities = entitiesRequest.json()
+entities = []
+globalStatusCode = entitiesRequest.status_code
+if globalStatusCode == 200:
+    entities = entitiesRequest.json()
+else: 
+    print("Error getting entities", globalStatusCode, entitiesRequest.json())
+sensors = ["ONSTREETPARKINGCUAPPC23S01","ONSTREETPARKINGCUAPPC35S01","ONSTREETPARKINGCUAPPC56S01","PEOPLECOUNTERCUAPPC69S01","PEOPLECOUNTERCUAPPC70S01","PEOPLECOUNTERCUAPPC71S01","PEOPLECOUNTERCUAPPC72S01","PEOPLECOUNTERCUAPPC73S01","PEOPLECOUNTERCUAPPC74S01","PEOPLECOUNTERCUAPPC75S01","PEOPLECOUNTERCUAPPC76S01","ONSTREETPARKINGCUAPPC66S01","WifiBluDetectorCUAC0004S01"]
+for sensor in sensors:
+    urlForRequest = urlEntities + "/" + sensor
+    httpRequest = requests.get(urlForRequest, headers=headers)
+    statusCode = httpRequest.status_code
+    if statusCode == 200:
+        entities.append(httpRequest.json())
+    else:
+        print("Error getting entities", statusCode, httpRequest.json())
+
+
 
 
 
@@ -75,7 +91,9 @@ def format_sentilo_data(entities):
     } for _, value in grouped_data.items()]
 
     keys = {k for item in output for k in item.keys()}
-
-    return output, list(keys)
-
-pprint.pprint(format_sentilo_data(entities))
+    sortedKeys = list(keys)
+    sortedKeys.sort()
+    return output, sortedKeys
+formatted_entities, keys = format_sentilo_data(entities)
+pprint.pprint(formatted_entities)
+pprint.pprint(keys)

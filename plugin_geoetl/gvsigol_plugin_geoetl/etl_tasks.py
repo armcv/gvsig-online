@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from copy import deepcopy
-import pprint
 from gvsigol import settings
 from .settings import URL_GEOCODER, GEOETL_DB
-from .sentilo_geoetl import input_Sentilo_etl,format_sentilo_data_etl
+from .sentilo_geoetl import input_Sentilo_etl
 
 import pandas as pd
 import psycopg2
@@ -31,9 +30,6 @@ import math
 import numpy as np
 from . import etl_schema
 import xml.etree.ElementTree as ET
-from sqlalchemy import Column, DateTime, String, Float
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import MetaData, Table
 
 from celery.utils.log import get_task_logger
 
@@ -786,7 +782,6 @@ def isInSamedb(params):
 
 
 def output_Postgis(dicc):
-    pprint.pprint(dicc)
     table_name_source = dicc['data'][0]
 
     db  = database_connections.objects.get(name = dicc['db-option'])
@@ -1080,9 +1075,7 @@ def output_Postgis(dicc):
             ))
 
             con_source.commit()
-            pprint.pprint(cur)
             for row in cur:
-                pprint.pprint(row)
                 attrs_update ='UPDATE {sch_target}.{tbl_target} SET '
                 attrList =[]
                 valueList =[]
@@ -2174,7 +2167,6 @@ def input_Indenova(dicc):
 
 
 def input_Postgis(dicc):
-    pprint.pprint(dicc)
     table_name_target= dicc['id'].replace('-','_')
 
     db  = database_connections.objects.get(name = dicc['db'])
@@ -3947,9 +3939,6 @@ def input_Segex(dicc):
     db.dispose()
 
     return [table_name]
-
-def format_sentilo_data(entities):
-    return format_sentilo_data_etl(entities)
 
 def input_Sentilo(dicc):
     return input_Sentilo_etl(dicc)

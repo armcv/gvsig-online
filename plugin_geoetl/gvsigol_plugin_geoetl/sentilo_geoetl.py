@@ -1,21 +1,16 @@
 from collections import defaultdict
+from django.shortcuts import HttpResponse
 import pandas as pd
 import requests
 import json
 from .models import database_connections
-from gvsigol_auth.utils import superuser_required, staff_required
 from .forms import UploadFileForm
-from . import etl_schema
-from django.shortcuts import HttpResponse, render, redirect
-from django.contrib.auth.decorators import login_required
-
 from sqlalchemy import Column, DateTime, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import MetaData, Table
 
-from sqlalchemy import create_engine, false, true
-from .settings import URL_GEOCODER, GEOETL_DB
-from .etl_schema import *
+from sqlalchemy import create_engine
+from .settings import GEOETL_DB
 
 #etl_tasks
 def format_sentilo_data_etl(entities):
@@ -94,26 +89,40 @@ def format_sentilo_data_etl(entities):
     keys = set()
     for item in output:
         keys.update(item.keys())
-    return output, list(keys)
+    keys = list(keys)
+    keys.sort()
+    return output, keys
+
+def sentilo_http_request(baseUrl, sensors, apikey):
+    headers = {'Authorization': 'Bearer ' + apikey}
+    entitiesRequest = requests.get(baseUrl, headers=headers)
+    entities = []
+    global_status_code = entitiesRequest.status_code
+    if global_status_code == 200:
+        entities = entitiesRequest.json()
+    for sensor in sensors:
+        urlEntities = baseUrl + "/" + sensor
+        httpRequest = requests.get(urlEntities, headers=headers)
+        status_code = httpRequest.status_code
+        if status_code == 200:
+            entities.append(httpRequest.json())
+    return entities
 
 def input_Sentilo_etl(dicc):
     api  = database_connections.objects.get(name = dicc['api'])
+    sensors = dicc["sensors"].split(",")
+
     params_str = api.connection_params
     params = json.loads(params_str)
-    json_formatted_str = json.dumps(params, indent=2)
 
     conn_string = 'postgresql://'+GEOETL_DB['user']+':'+GEOETL_DB['password']+'@'+GEOETL_DB['host']+':'+GEOETL_DB['port']+'/'+GEOETL_DB['database']
     db = create_engine(conn_string)
     conn = db.connect()
 
     table_name = dicc['id']
-    urlEntities = params["domain"] + "/entities"
-    headers = {'Authorization': 'Bearer ' + params['identity-key']}
-    entitiesRequest = requests.get(urlEntities, headers=headers)
-    entities = entitiesRequest.json()
-    output, keys = format_sentilo_data_etl(entities)
-
-    db_schema_name = dicc['db_schema_name']
+    urlEntities = params["domain"]
+    entities = sentilo_http_request(urlEntities, sensors, params['identity-key'])
+    output, _ = format_sentilo_data_etl(entities)
     db_table_name = dicc['table_name']
     db_columns = dicc['schema']
 
@@ -166,26 +175,14 @@ def etl_schema_sentilo_etl(request):
         jsParams = json.loads(request.POST['jsonparamsSentilo'])
         dicc = jsParams['parameters'][0]
         api  = database_connections.objects.get(name = dicc['api'])
+        sensors = dicc["sensors"].split(",")
         params_str = api.connection_params
         params = json.loads(params_str)
-        urlEntities = params["domain"] + "/entities"
-        headers = {'Authorization': 'Bearer ' + params['identity-key']}
-        entitiesRequest = requests.get(urlEntities, headers=headers)
-        entities = entitiesRequest.json()
+        urlEntities = params["domain"]
+        entities = sentilo_http_request(urlEntities, sensors, params['identity-key'])
 
         _, keys = format_sentilo_data_etl(entities)
         form = UploadFileForm(request.POST)
         if form.is_valid():
             response = json.dumps(keys)
-            return HttpResponse(response, content_type="application/json")
-        
-def etl_proced_sentilo_etl(request):
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST)
-        if form.is_valid():
-            jsParams = json.loads(request.POST['jsonParamsProced'])
-
-            listProcedures = get_proced_sentilo(jsParams['parameters'][0])
-            response = json.dumps(listProcedures)
-
             return HttpResponse(response, content_type="application/json")

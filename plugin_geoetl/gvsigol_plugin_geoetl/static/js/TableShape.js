@@ -631,6 +631,11 @@ input_Sentilo = draw2d.shape.layout.VerticalLayout.extend({
                                 '<label form="db" class="col-form-label"> Esquema Base de Datos </label>'+
                                 '<input type="text" id="db_schema-'+ID+'" class="form-control" value="public">'+
                             '</div>'+
+                            '<br><br>'+
+                            '<div>'+
+                                '<label form="db" class="col-form-label"> Sensores(separados por coma) </label>'+
+                                '<input type="text" id="sensors-'+ID+'" class="form-control" value="public">'+
+                            '</div>'+
                             '<br><br><br><br><br><br><br><br><br><br><br><br><br><br>'+ 
                         '</form>'+
                     '</div>'+
@@ -665,6 +670,7 @@ input_Sentilo = draw2d.shape.layout.VerticalLayout.extend({
                 {   
                     "api": $('#api-'+ID).val(),
                     "table_name": $('#data_table-'+ID).val(),
+                    "sensors": $('#sensors-'+ID).val(),
                     "db_schema_name": $('#db_schema-'+ID).val(),
                 }
             ]};
