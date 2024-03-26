@@ -782,6 +782,7 @@ def isInSamedb(params):
 
 
 def output_Postgis(dicc):
+
     table_name_source = dicc['data'][0]
 
     db  = database_connections.objects.get(name = dicc['db-option'])
@@ -1075,6 +1076,7 @@ def output_Postgis(dicc):
             ))
 
             con_source.commit()
+
             for row in cur:
                 attrs_update ='UPDATE {sch_target}.{tbl_target} SET '
                 attrList =[]
@@ -1122,7 +1124,8 @@ def output_Postgis(dicc):
             except:
                 pass
             cur_2.close()
-                                        
+                    
+
         elif dicc['operation'] == 'DELETE':
 
             sqlDatetype = 'SELECT column_name from information_schema.columns '
@@ -1704,6 +1707,14 @@ def trans_TextToPoint(dicc):
     lon = dicc['lon']
     epsg = dicc['epsg']
 
+    print(dicc)
+
+    try:
+        text_to_point = dicc['txt-to-point']
+    except:
+        text_to_point = 'txt-to-point'
+
+
     table_name_source = dicc['data'][0]
     table_name_target = dicc['id']
 
@@ -1716,25 +1727,36 @@ def trans_TextToPoint(dicc):
     cur.execute(sqlDrop)
     conn.commit()
 
-    sqlDup = sql.SQL('CREATE TABLE {schema}.{tbl_target} AS (SELECT *, ST_SetSRID(ST_MakePoint({lon}::float, {lat}::float), {epsg}) AS wkb_geometry FROM {schema}.{tbl_source} );').format(
-        schema = sql.Identifier(GEOETL_DB["schema"]),
-        tbl_target = sql.Identifier(table_name_target),
-        tbl_source = sql.Identifier(table_name_source),
-        lon = sql.Identifier(lon),
-        lat = sql.Identifier(lat),
-        epsg = sql.SQL(epsg)
-    )
-    cur.execute(sqlDup)
-    conn.commit()
+    if text_to_point == 'txt-to-point':
 
-    sqlAlter = sql.SQL('ALTER TABLE {schema}.{table_name} ALTER COLUMN wkb_geometry TYPE Geometry(Point, {srid})').format(
-        schema = sql.Identifier(GEOETL_DB["schema"]),
-        table_name = sql.Identifier(table_name_target),
-        srid = sql.SQL(str(epsg))
-    )
+        sqlDup = sql.SQL('CREATE TABLE {schema}.{tbl_target} AS (SELECT *, ST_SetSRID(ST_MakePoint({lon}::float, {lat}::float), {epsg}) AS wkb_geometry FROM {schema}.{tbl_source} );').format(
+            schema = sql.Identifier(GEOETL_DB["schema"]),
+            tbl_target = sql.Identifier(table_name_target),
+            tbl_source = sql.Identifier(table_name_source),
+            lon = sql.Identifier(lon),
+            lat = sql.Identifier(lat),
+            epsg = sql.SQL(epsg)
+        )
+        cur.execute(sqlDup)
+        conn.commit()
 
-    cur.execute(sqlAlter)
-    conn.commit()
+        sqlAlter = sql.SQL('ALTER TABLE {schema}.{table_name} ALTER COLUMN wkb_geometry TYPE Geometry(Point, {srid})').format(
+            schema = sql.Identifier(GEOETL_DB["schema"]),
+            table_name = sql.Identifier(table_name_target),
+            srid = sql.SQL(str(epsg))
+        )
+
+        cur.execute(sqlAlter)
+        conn.commit()
+    
+    elif text_to_point == 'point-to-txt':
+        sqlDup = sql.SQL('CREATE TABLE {schema}.{tbl_target} AS (SELECT *, ST_X(ST_CENTROID(wkb_geometry)) as _xlon, ST_Y(ST_CENTROID(wkb_geometry)) as _ylat FROM {schema}.{tbl_source} );').format(
+            schema = sql.Identifier(GEOETL_DB["schema"]),
+            tbl_target = sql.Identifier(table_name_target),
+            tbl_source = sql.Identifier(table_name_source)
+        )
+        cur.execute(sqlDup)
+        conn.commit()
     
     return[table_name_target]
 
@@ -2167,6 +2189,7 @@ def input_Indenova(dicc):
 
 
 def input_Postgis(dicc):
+
     table_name_target= dicc['id'].replace('-','_')
 
     db  = database_connections.objects.get(name = dicc['db'])

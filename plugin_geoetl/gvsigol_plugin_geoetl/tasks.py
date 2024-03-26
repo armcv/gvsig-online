@@ -1,3 +1,4 @@
+
 from gvsigol.celery import app as celery_app
 from celery.schedules import crontab
 from django_celery_beat.models import CrontabSchedule, PeriodicTask, IntervalSchedule
@@ -270,7 +271,6 @@ def run_canvas_background(**kwargs):
             delete_tables(tables_list_name)
         
         except Exception as e:
-            print(e)
             logger.exception('Error running workspace')
             
             if id_ws:

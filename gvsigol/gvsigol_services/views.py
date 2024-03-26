@@ -22,7 +22,7 @@
 '''
 from .sentilo_integration import get_response_features
 import ast
-from datetime import datetime, date
+from datetime import datetime
 import hashlib
 from http.client import HTTPResponse
 import json
@@ -37,6 +37,7 @@ import unicodedata
 import urllib.request, urllib.parse, urllib.error
 import zipfile
 import xmltodict
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -113,6 +114,7 @@ _valid_name_regex=re.compile("^[a-zA-Z_][a-zA-Z0-9_]*$")
 CONNECT_TIMEOUT = 3.05
 READ_TIMEOUT = 30
 base_layer_process = {}
+
 
 def role_deleted_handler(sender, **kwargs):
     try:
@@ -3072,6 +3074,7 @@ def get_feature_info(request):
                     if 'workspace' in layer:
                         ws = layer['workspace']
 
+                    print(url)
                     auth2 = None
                     headers = None
                     if query_layer != 'plg_catastro' and \
