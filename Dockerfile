@@ -3,7 +3,7 @@ FROM geonode/geonode-base:latest-ubuntu-22.04
 RUN apt-get update
 RUN apt install libxmlsec1 libxmlsec1-dev -y
 # RUN apt-get install -y python-dev libxml2 libxml2-dev libxslt-dev git python3-pip libpq-dev libsasl2-dev libldap2-dev libssl-dev libxml2-dev libxmlsec1-dev libxmlsec1-openssl pkg-config gdal-bin gdal-data libgdal-dev libgdal-perl libgdal-perl-doc libgdal28 python3-gdal default-jre
-ADD ./gvsig-online GVSIGONLINE
+ADD . GVSIGONLINE
 WORKDIR GVSIGONLINE/gvsigol
 RUN ln -s ../app_dev/gvsigol_app_dev
 RUN ln -s ../plugin_edition/gvsigol_plugin_edition

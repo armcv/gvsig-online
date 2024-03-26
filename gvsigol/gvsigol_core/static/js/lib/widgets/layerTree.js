@@ -680,29 +680,6 @@ layerTree.prototype.createTemporaryTab = function() {
 	temporary_tree += 	'<input type="radio" id="temporary-range" data-value="range" name="temporary-group">';
 	temporary_tree += 	'<span class="text" style="vertical-align: super;margin-left:10px">'+gettext('Range')+'</span>';
 	temporary_tree += '</div>';
-
-	//Sentilo_Integracion: Se agrega el grupo temporal para mostrar los valores All, Average y Last
-	temporary_tree += '<div style="margin-left:10px;margin-top:10px">';	
-	temporary_tree += 	'<span class="text" style="vertical-align: super;margin-left:10px">'+gettext('Show values')+':</span>';
-	temporary_tree += '</div>';
-
-	temporary_tree += '<div style="margin-left:10px;">';
-	temporary_tree += 	'<input type="radio" id="temporary-all" data-value="all" name="temporary-group-show-values" checked>';
-	temporary_tree += 	'<span class="text" style="vertical-align: super;margin-left:10px">'+gettext('All')+'</span>';
-	temporary_tree += '</div>';
-	
-	temporary_tree += '<div style="margin-left:10px;">';
-	temporary_tree += 	'<input type="radio" id="temporary-average" data-value="average" name="temporary-group-show-values">';
-	temporary_tree += 	'<span class="text" style="vertical-align: super;margin-left:10px">'+gettext('Average')+'</span>';
-	temporary_tree += '</div>';
-
-	temporary_tree += '<div style="margin-left:10px;">';
-	temporary_tree += 	'<input type="radio" id="temporary-last" data-value="last" name="temporary-group-show-values">';
-	temporary_tree += 	'<span class="text" style="vertical-align: super;margin-left:10px">'+gettext('Last')+'</span>';
-	temporary_tree += '</div>';
-	//Sentilo_Integracion----------------------------
-
-
 	temporary_tree += '	</div>';
 	temporary_tree += '</div>';
 	temporary_tree += '<div class="box temporary-body" style="border-top:45px solid #e8ecf4;">';
@@ -1100,12 +1077,6 @@ layerTree.prototype.createTemporaryTab = function() {
 	$("input[name=temporary-group]").change(function (e) {
 		self.refreshTemporalSlider();
 	});
-
-// Detectar los cambios en el radio button show values
-	$("input[name=temporary-group-show-values]").change(function (e) {
-		self.refreshTemporalSlider();
-	});
-//---------------------------------
 	
 	$("#temporary-step-unit").change(function () {
 		self.refreshTemporalStep();
@@ -1546,12 +1517,8 @@ layerTree.prototype.updateTemporalLayers = function(startDate, endDate) {
 
 							start = start + "/" + end;
 						}
-
-						// Para tomar el valor checkado en el radio button y mandarlo como parámetro
-						var show_values_input = $("input[name=temporary-group-show-values]:checked").attr("data-value");
-						//-----------------------
 						
-						maplayer.getSource().updateParams({'TIME': start,'SHOW_VALUES': show_values_input});
+						maplayer.getSource().updateParams({'TIME': start});
 					}
 				}else{
 					if(maplayer.getSource() != null && typeof maplayer.getSource().updateParams === 'function'){
