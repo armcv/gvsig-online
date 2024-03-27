@@ -20,7 +20,7 @@
 '''
 @author: Cesar Martinez <cmartinez@scolab.es>
 '''
-from .sentilo_integration import get_response_features
+
 import ast
 from datetime import datetime
 import hashlib
@@ -3220,7 +3220,7 @@ def get_feature_info(request):
                 full_features = full_features + features
 
             response = {
-                'features': get_response_features(url, full_features, layer.time_enabled_field),
+                'features': full_features
             }
 
         return HttpResponse(json.dumps(response, indent=4), content_type='application/json')

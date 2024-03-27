@@ -839,18 +839,6 @@ msgstr "Unic"
 msgid "Range"
 msgstr "Rang"
 
-#: gvsigol_core/static/js/lib/widgets/layerTree.js
-msgid "Show values"
-msgstr "Mostrar valors"
-
-#: gvsigol_core/static/js/lib/widgets/layerTree.js
-msgid "All"
-msgstr "Tots"
-
-#: gvsigol_core/static/js/lib/widgets/layerTree.js
-msgid "Average"
-msgstr "Mitjana"
-
 #: gvsigol_core/static/js/lib/widgets/layerTree.js:687
 msgid "Temporary layers"
 msgstr "Capes temporals"

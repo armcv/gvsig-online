@@ -680,6 +680,7 @@ layerTree.prototype.createTemporaryTab = function() {
 	temporary_tree += 	'<input type="radio" id="temporary-range" data-value="range" name="temporary-group">';
 	temporary_tree += 	'<span class="text" style="vertical-align: super;margin-left:10px">'+gettext('Range')+'</span>';
 	temporary_tree += '</div>';
+	
 	temporary_tree += '	</div>';
 	temporary_tree += '</div>';
 	temporary_tree += '<div class="box temporary-body" style="border-top:45px solid #e8ecf4;">';
