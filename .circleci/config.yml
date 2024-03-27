@@ -8,27 +8,27 @@ workflows:
           context: myContext
           executor: doctl/default
       - doctl/initialize:
-        digitalocean-access-token: DO_TOKEN
-    run_docker_command:
-      jobs:
-        deploy:  
-          # This is an example deploy job, not actually used by the workflow
-          docker:
-            - image: cimg/base:stable
-          steps:
-            # Replace this with steps to deploy to users
-            - run:
-                name: Docker build image
-                command: docker build -t cullera_test_ubuntu .
-            - run:
-                name: login to registry
-                command: doctl registry login
-            - run:
-                name: tag image
-                command: docker tag cullera_test_ubuntu registry.digitalocean.com/cullera_test_ubuntu
-            - run: 
-                name: push image
-                command: docker push registry.digitalocean.com/cullera_test_ubuntu
-            - run:
-                name: deploy image
-                command: kubectl rollout restart deployment/gvsigonline-ubuntu
+          digitalocean-access-token: DO_TOKEN
+      -  deploy
+jobs:
+  deploy:  
+    # This is an example deploy job, not actually used by the workflow
+    docker:
+      - image: cimg/base:stable
+    steps:
+      # Replace this with steps to deploy to users
+      - run:
+          name: Docker build image
+          command: docker build -t cullera_test_ubuntu .
+      - run:
+          name: login to registry
+          command: doctl registry login
+      - run:
+          name: tag image
+          command: docker tag cullera_test_ubuntu registry.digitalocean.com/cullera_test_ubuntu
+      - run: 
+          name: push image
+          command: docker push registry.digitalocean.com/cullera_test_ubuntu
+      - run:
+          name: deploy image
+          command: kubectl rollout restart deployment/gvsigonline-ubuntu
