@@ -16,6 +16,7 @@ jobs:
       # Replace this with steps to deploy to users
       - checkout
       - setup_remote_docker
+      - doctl/install
       - run:
           name: Docker build image
           command: docker build -t cullera_test_ubuntu .
