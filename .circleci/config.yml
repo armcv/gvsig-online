@@ -20,15 +20,15 @@ jobs:
       - setup_remote_docker
       - doctl/install
       - kubernetes/install
-      - run:
-          name: kubernetes login digitalocean
-          command: doctl kubernetes cluster kubeconfig save gvsig
       - run: 
           name: DigitalOcean Auth
           command: doctl auth init --access-token $DO_TOKEN
       - run:
           name: login to registry
           command: doctl registry login
+      - run:
+        name: kubernetes login digitalocean
+        command: doctl kubernetes cluster kubeconfig save gvsig
       - run:
           name: Docker build image
           command: docker build -t cullera_test_ubuntu .
