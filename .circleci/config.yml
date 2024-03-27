@@ -27,8 +27,8 @@ jobs:
           name: login to registry
           command: doctl registry login
       - run:
-        name: kubernetes login digitalocean
-        command: doctl kubernetes cluster kubeconfig save gvsig
+          name: kubernetes login digitalocean
+          command: doctl kubernetes cluster kubeconfig save gvsig
       - run:
           name: Docker build image
           command: docker build -t cullera_test_ubuntu .
