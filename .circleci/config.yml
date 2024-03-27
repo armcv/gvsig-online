@@ -17,12 +17,15 @@ jobs:
       - checkout
       - setup_remote_docker
       - doctl/install
-      - run:
-          name: Docker build image
-          command: docker build -t cullera_test_ubuntu .
+      - run: 
+        name: DigitalOcean Auth
+        command: doctl auth init --access-token $DO_TOKEN
       - run:
           name: login to registry
           command: doctl registry login
+      - run:
+        name: Docker build image
+        command: docker build -t cullera_test_ubuntu .
       - run:
           name: tag image
           command: docker tag cullera_test_ubuntu registry.digitalocean.com/cullera_test_ubuntu
