@@ -11,6 +11,7 @@ RUN ln -s ../plugin_baseapi/gvsigol_plugin_baseapi
 RUN ln -s ../plugin_featureapi/gvsigol_plugin_featureapi
 RUN ln -s ../plugin_projectapi/gvsigol_plugin_projectapi
 RUN ln -s ../plugin_geoetl/gvsigol_plugin_geoetl
+RUN ln -s ../plugin_sentilo/gvsigol_plugin_sentilo
 RUN ln -s ../plugin_print/gvsigol_plugin_print
 
 RUN pip3 install --upgrade pip
