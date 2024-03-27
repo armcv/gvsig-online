@@ -15,7 +15,7 @@ spec:
       spec:
           containers:
             - name: gvsigonline-ubuntu
-              image: registry.digitalocean.com/lyn/cullera_test_ubuntu:6.0
+              image: registry.digitalocean.com/lyn/cullera_test_ubuntu:latest
               volumeMounts:
                - mountPath: "/opt/gvsigol_data/"
                  name: volume-gvsigonline

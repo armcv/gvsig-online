@@ -50,4 +50,4 @@ spec:
           service:
             name: gvsigonline-ubuntu
             port:
-              number: 8001
+              number: 8000
