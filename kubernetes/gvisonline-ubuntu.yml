@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: gvsigonline-ubuntu
+   namespace: default
+spec:
+   replicas: 1
+   selector:
+      matchLabels:
+         bb: gvsigonline-ubuntu
+   template:
+      metadata:
+         labels:
+            bb: gvsigonline-ubuntu
+      spec:
+          containers:
+            - name: gvsigonline-ubuntu
+              image: registry.digitalocean.com/lyn/cullera_test_ubuntu:6.0
+              volumeMounts:
+               - mountPath: "/opt/gvsigol_data/"
+                 name: volume-gvsigonline
+          volumes:
+            - name: volume-gvsigonline
+              persistentVolumeClaim:
+               claimName: volume-gvsigonline
+          imagePullSecrets:
+              - name: lyn
+         

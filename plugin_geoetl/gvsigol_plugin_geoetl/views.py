@@ -21,11 +21,14 @@
 '''
 @author: carlesmarti <carlesmarti@scolab.es>
 '''
-
+from .sentilo_geoetl import etl_schema_sentilo_etl
+from collections import defaultdict
 from operator import concat
+import pprint
 from urllib import response
 from django.shortcuts import HttpResponse, render, redirect
 from django.contrib.auth.decorators import login_required
+import requests
 from gvsigol_auth.utils import superuser_required, staff_required
 from gvsigol_auth import auth_backend
 from gvsigol_auth.django_auth import get_user_details
@@ -960,6 +963,12 @@ def etl_schema_indenova(request):
             response = json.dumps(listSchema)
 
             return HttpResponse(response, content_type="application/json")
+        
+
+@login_required()
+@staff_required
+def etl_schema_sentilo(request):
+    return etl_schema_sentilo_etl(request)
 
 
 @login_required()

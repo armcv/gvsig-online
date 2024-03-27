@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: geoserver
+   namespace: default
+spec:
+   replicas: 1
+   selector:
+      matchLabels:
+         bb: geo
+   template:
+      metadata:
+         labels:
+            bb: geo
+      spec:
+          containers:
+            - name: geoserver
+              image: registry.digitalocean.com/lyn/geo:2.0
+              env:
+               - name: CORS_ENABLED
+                 value: "true"
+               - name: CORS_ALLOWED_ORIGINS
+                 value: "*"
+               - name: GEOSERVER_CSRF_WHITELIST
+                 value: "geoserver.lynsoluciones.es,gvsigonlinetest.lynsoluciones.es"
+              volumeMounts:
+               - mountPath: "/opt/geoserver_data/"
+                 name: volumegeoserver
+               - mountPath: "/opt/geoserver_data/styles/media/"
+                 name: volume-gvsigonline
+          volumes:
+            - name: volumegeoserver
+              persistentVolumeClaim:
+               claimName: volumegeoserver
+            - name: volume-gvsigonline
+              persistentVolumeClaim:
+               claimName: volume-gvsigonline
+          imagePullSecrets:
+              - name: lyn

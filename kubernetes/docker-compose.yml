@@ -1,0 +1,13 @@
+services:
+  web:
+    image: cullera2
+    ports:
+      - "8000:8000"
+  geoserver:
+    image: docker.osgeo.org/geoserver:2.24.2
+    ports:
+      - "8080:8080"
+networks:
+  network1:
+    name: externaldefault
+    external: true

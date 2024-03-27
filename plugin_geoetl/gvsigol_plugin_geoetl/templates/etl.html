@@ -22,6 +22,7 @@
                                 <li><a data-shape="input_Csv" class="palette_node_element draw2d_droppable dropdown-item">CSV</a></li>
                                 <li><a data-shape="input_Excel" class="palette_node_element draw2d_droppable dropdown-item">Excel</a></li>
                                 <li><a data-shape="input_Indenova" class="palette_node_element draw2d_droppable dropdown-item">InDenova</a></li>
+                                <li><a data-shape="input_Sentilo" class="palette_node_element draw2d_droppable dropdown-item">Sentilo</a></li>
                                 <li><a data-shape="input_Json" class="palette_node_element draw2d_droppable dropdown-item">JSON</a></li>
                                 <li><a data-shape="input_Kml" class="palette_node_element draw2d_droppable dropdown-item">KML/KMZ</a></li>
                                 <li><a data-shape="input_Oracle" class="palette_node_element draw2d_droppable dropdown-item">Oracle</a></li>
@@ -350,6 +351,7 @@
                                 <select  class="form-control" style="width: 100%;" id="type-api" name="type-api">
                                     <option value="">---</option>
                                     <option value="indenova">InDenova</option>
+                                    <option value="sentilo">Sentilo</option>
                                     <option value="segex">SEGEX</option>
                                     <option value="padron-atm">Padrón ATM</option>
                                 </select>
@@ -504,6 +506,22 @@
                             </div>
                         </div>
 
+                        <div id="sentilo-api" name = "api-form" style = "display:none;">
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="col-form-label" >{% trans 'Domain' %}</label>
+                                    <input type="text" id="domain-sentilo" class="form-control" pattern="[A-Za-z]{3}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="col-form-label">Sentilo Identity Key</label>
+                                    <input type="text" id="identity-key-sentilo" class="form-control" pattern="[A-Za-z]{3}">
+                                </div>
+                            </div>
+                           
+                        </div>
 
                         <div id="segex-api" name = "api-form" style = "display:none;">
 
@@ -832,6 +850,9 @@
         }else if ($("#type-api").val() == 'segex'){
             $("#segex-api").slideDown();
         }
+        else if ($("#type-api").val() == 'sentilo'){
+            $("#sentilo-api").slideDown();
+        }
 
     });
 
@@ -971,6 +992,18 @@
                         "password": $('#password-segex').val()
                         }
                 ]}
+            
+            }else if ($("#type-api").val() == 'sentilo'){
+                var params = {
+                    "type-db": $("#type-api").val(),
+                    "name-db": $("#name-db").val(),
+                    "parameters": [
+                        {
+                        "domain": $('#domain-sentilo').val(),
+                        "identity-key": $('#identity-key-sentilo').val(),
+                        }
+                ]}
+            
             
             }
         }

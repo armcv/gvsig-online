@@ -3,6 +3,7 @@
 from copy import deepcopy
 from gvsigol import settings
 from .settings import URL_GEOCODER, GEOETL_DB
+from .sentilo_geoetl import input_Sentilo_etl
 
 import pandas as pd
 import psycopg2
@@ -956,7 +957,7 @@ def output_Postgis(dicc):
 
                 cur_2.close()
 
-                sqlInsert_ = 'INSERT INTO {sch_target}.{tbl_target} {attrs_target} SELECT {attrs_source} FROM {sch_source}.{tbl_source} '
+                sqlInsert_ = 'INSERT INTO {sch_target}.{tbl_target} {attrs_target} SELECT {attrs_source} FROM {sch_source}.{tbl_source} ON CONFLICT DO NOTHING'
                 
                 sqlInsert = sql.SQL(sqlInsert_).format(
                         sch_target = sql.Identifier(esq),
@@ -3961,6 +3962,10 @@ def input_Segex(dicc):
     db.dispose()
 
     return [table_name]
+
+def input_Sentilo(dicc):
+    return input_Sentilo_etl(dicc)
+
 
 
 def input_Json(dicc):
