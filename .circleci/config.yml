@@ -14,6 +14,8 @@ jobs:
       - image: cimg/base:stable
     steps:
       # Replace this with steps to deploy to users
+      - checkout
+      - setup_remote_docker
       - run:
           name: Docker build image
           command: docker build -t cullera_test_ubuntu .
