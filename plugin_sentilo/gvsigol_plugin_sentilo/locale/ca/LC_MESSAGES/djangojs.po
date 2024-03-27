@@ -1264,3 +1264,19 @@ msgstr "Tolerància"
 msgid "Matched"
 msgstr "Emparellats"
 
+msgid "Show values"
+msgstr "Mostrar valores"
+
+
+msgid "Show values"
+msgstr "Mostrar valors"
+
+msgid "All"
+msgstr "Tots"
+
+msgid "Average"
+msgstr "Mitjana"
+
+msgid "Last"
+msgstr "Últim"
+

@@ -1184,3 +1184,15 @@ msgstr "Tolerância"
 
 msgid "Matched"
 msgstr "Emparelhados"
+
+msgid "Show values"
+msgstr "Mostrar valores"
+
+msgid "All"
+msgstr "Todos"
+
+msgid "Average"
+msgstr "Média"
+
+msgid "Last"
+msgstr "Último"

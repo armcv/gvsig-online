@@ -1175,3 +1175,15 @@ msgstr ""
 #: static/js/lib/_trans.gvsigol.js:3
 msgid "Connection parameters are not valid."
 msgstr ""
+
+msgid "Show values"
+msgstr "Mostrar valores"
+
+msgid "All"
+msgstr "Todos"
+
+msgid "Average"
+msgstr "Média"
+
+msgid "Last"
+msgstr "Último"
