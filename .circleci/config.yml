@@ -2,36 +2,28 @@
 # Stacks detected: cicd:github-actions:.github/workflows,deps:python:gvsigol,file:manage.py:gvsigol
 version: 2.1
 orbs:
-  python: circleci/python@2
+  cli: digitalocean/cli@0.1.1
 jobs:
-  test-python:
-    # Install dependencies and run tests
-    docker:
-      - image: cimg/python:3.8-node
-    working_directory: ~/project/gvsigol
-    steps:
-      - checkout:
-          path: ~/project
-      - python/install-packages
-      - run:
-          name: Run tests
-          command: python manage.py test
-  deploy:
+  - doctl/initialize:
+      digitalocean-access-token: DO_TOKEN
+  deploy:  
     # This is an example deploy job, not actually used by the workflow
     docker:
       - image: cimg/base:stable
     steps:
       # Replace this with steps to deploy to users
       - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
+          name: Docker build image
+          command: docker build -t cullera_test_ubuntu .
       - run:
-          name: found github actions config
-          command: ':'
-workflows:
-  build-and-test:
-    jobs:
-      - test-python
-    # - deploy:
-    #     requires:
-    #       - test-python
+          name: login to registry
+          command: doctl registry login
+      - run:
+          name: tag image
+          command: docker tag cullera_test_ubuntu registry.digitalocean.com/cullera_test_ubuntu
+      - run: 
+          name: push image
+          command: docker push registry.digitalocean.com/cullera_test_ubuntu
+      - run:
+          name: deploy image
+          command: kubectl rollout restart deployment/gvsigonline-ubuntu
