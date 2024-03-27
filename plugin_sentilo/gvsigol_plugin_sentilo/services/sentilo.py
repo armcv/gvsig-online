@@ -1,9 +1,10 @@
 
 
 from collections import defaultdict
-from django.shortcuts import HttpResponse
+from django.shortcuts import get_object_or_404
 import pandas as pd
 import requests
+from gvsigol_plugin_sentilo.models import SentiloConfiguration
 from sqlalchemy import Column, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import MetaData, Table
@@ -12,13 +13,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert
 
 from gvsigol_plugin_sentilo.settings import SENTILO_DB
-from gvsigol.celery import app as celery_app
-from django_celery_beat.models import CrontabSchedule, PeriodicTask, IntervalSchedule
-
-
-@celery_app.task(bind=True)
-def fetch_sentilo_api_task(_, url, identity_key, db_table, sensors ):
-    fetch_sentilo_api(url, identity_key, db_table, sensors)
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+import json
 
 def fetch_sentilo_api(url, identity_key, db_table, sensors):
     conn_string = 'postgresql://'+SENTILO_DB['user']+':'+SENTILO_DB['password']+'@'+SENTILO_DB['host']+':'+SENTILO_DB['port']+'/'+SENTILO_DB['database']
@@ -26,7 +22,7 @@ def fetch_sentilo_api(url, identity_key, db_table, sensors):
     conn = db.connect()
     entities = sentilo_http_request(url, sensors, identity_key)
     output, db_columns = format_sentilo_data_etl(entities)
-
+    db_table = db_table
     Base = declarative_base()
 
     # Definir el modelo de la tabla
@@ -51,7 +47,6 @@ def fetch_sentilo_api(url, identity_key, db_table, sensors):
     for col in db_columns: 
         if col.lower() not in nombres_de_columnas:
             column = None
-            print(col)
             if col.endswith("_value"):
                 column = Column(col, Float)
             else:
@@ -65,7 +60,7 @@ def fetch_sentilo_api(url, identity_key, db_table, sensors):
     df_obj = df.select_dtypes(['object'])
     df[df_obj.columns] = df_obj.apply(lambda x: x.str.lstrip(' '))
     # Prepare insert statement
-    stmt = insert(db_table).values(df.to_dict(orient='records'))
+    stmt = insert(tabla).values(df.to_dict(orient='records'))
 
     # Add on conflict do nothing
     stmt = stmt.on_conflict_do_nothing(index_elements=['component', 'lat', 'lng', 'observation_time'])
@@ -82,7 +77,6 @@ def format_sentilo_data_etl(entities):
     filteredEntities = filter(lambda entity: "council_data" in entity and "value" in entity["council_data"] and entity["council_data"]["value"]["municipality"] == "cullera", entities)
     finalList = []
     list_tmp = {}
-    # print(entities[1])
     for entity in filteredEntities:
         componentSubStringIndex =  entity['id'].find("CUA")
         componentSensor = entity['id'][componentSubStringIndex:-3]
@@ -99,7 +93,6 @@ def format_sentilo_data_etl(entities):
         try: 
             observation_value = float(entity[metadata]["value"])
         except Exception as e:
-            print("Error getting observation_value", e)
             observation_value = 0
         observation_string = str(entity[metadata]["value"])
         try:
@@ -173,14 +166,19 @@ def sentilo_http_request(baseUrl, sensors, apikey):
             entities.append(httpRequest.json())
     return entities
 
-def process_sentilo_request(dicc):
-    sensors = dicc["sensors"].split(",")
-    db_table_name = dicc['table_name']
-    urlEntities = dicc["domain"]
-    identity_key = dicc["identity_key"]
-    interval = dicc["interval"]
-
-    my_task_name = 'gvsigol_plugin_sentilo.services.fetch_sentilo_api_task'
+def process_sentilo_request(form):
+    #     domain = models.CharField(max_length=200)
+    # sentilo_identity_key = models.CharField(max_length=200)
+    # tabla_de_datos = models.CharField(max_length=200)
+    # sentilo_sensors = models.TextField()  # Assuming this can be a long list
+    # intervalo_de_actualizacion = models.IntegerField()
+    id = form.id
+    db_table_name = form.tabla_de_datos
+    urlEntities = form.domain
+    identity_key = form.sentilo_identity_key
+    interval = form.intervalo_de_actualizacion
+    task = 'gvsigol_plugin_sentilo.tasks.fetch_sentilo_api_task'
+    my_task_name = task + "." + str(id)
     if not PeriodicTask.objects.filter(name=my_task_name).exists():
         
         schedule, _ = IntervalSchedule.objects.get_or_create(
@@ -190,9 +188,36 @@ def process_sentilo_request(dicc):
         PeriodicTask.objects.create(
             interval=schedule,
             name=my_task_name,
-            task=my_task_name,
-            args=[urlEntities, identity_key, db_table_name, sensors]
+            task=task,
+            args=json.dumps([urlEntities, identity_key, db_table_name, form.sentilo_sensors])
         )
 
-    fetch_sentilo_api(urlEntities, identity_key, db_table_name, sensors)
+    fetch_sentilo_api(urlEntities, identity_key, db_table_name, form.sentilo_sensors)
     return
+
+
+def delete_sentilo_request(config_id):
+    task = 'gvsigol_plugin_sentilo.tasks.fetch_sentilo_api_task'
+    my_task_name = task + "." + str(config_id)
+    config = get_object_or_404(SentiloConfiguration, id=config_id)
+    config.delete()
+    # remove any pending celery task 
+    tasks_to_delete = PeriodicTask.objects.filter(name=my_task_name)
+
+    if tasks_to_delete.exists():
+        tasks_to_delete.delete()
+    return
+
+def populate_sentilo_configs(configs):
+    configs_to_return = []
+    for config in configs:
+        task = 'gvsigol_plugin_sentilo.tasks.fetch_sentilo_api_task'
+        my_task_name = task + "." + str(config.id)
+        task = PeriodicTask.objects.filter(name=my_task_name).first()
+        if task: 
+            last_run = task.last_run_at
+            config.last_run = last_run
+        else:
+            config.last_run = "Never"
+        configs_to_return.append(config)
+    return configs_to_return
